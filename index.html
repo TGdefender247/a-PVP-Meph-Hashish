@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Защищённый доступ</title>
+  <style>
+    body { background: #000; color: #0f0; text-align: center; padding-top: 50px; font-family: monospace; }
+    .btn { background: #0f0; color: #000; padding: 10px 20px; border: none; cursor: pointer; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2>Чтобы открыть защищённый контакт — нажмите кнопку</h2>
+  <button class="btn" onclick="go()">Открыть чат</button>
+
+  <script>
+    function go() {
+      const username = atob("bHV2cm1vcw=="); // luvrmos
+      window.open("https://t.me/" + username, "_blank");
+    }
+  </script>
+</body>
+</html>
