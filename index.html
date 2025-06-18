@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    // Зашифрованный username (base64)
+    const encodedUsername = "QkVSTDFOXzcwNDI="; // это BERL1N_7042
+
+    // Декодируем и редиректим
+    window.onload = function() {
+      const username = atob(encodedUsername); // BERL1N_7042
+      const redirectURL = "https://t.me/" + username;
+      window.location.href = redirectURL;
+    }
+  </script>
+</head>
+<body style="background:#000;color:#0f0;text-align:center;padding-top:50px;">
+  Переход к Telegram...
+</body>
+</html>
