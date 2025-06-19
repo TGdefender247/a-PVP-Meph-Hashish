@@ -3,92 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
-      margin: 0;
+      margin: 0; padding: 0;
+      height: 100%;
       background: black;
       color: #00ff00;
-      font-family: monospace;
-      overflow: hidden;
+      font-family: 'Share Tech Mono', monospace, monospace;
       user-select: none;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
     canvas.matrix {
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: -1;
+      display: block;
     }
     h1 {
-      text-align: center;
-      margin-top: 40px;
+      font-size: 2rem;
+      margin: 0 0 20px 0;
+      text-shadow: 0 0 8px #00ff00;
     }
     .btn {
-      padding: 12px 24px;
+      padding: 14px 32px;
+      font-size: 1.25rem;
       border: 2px solid #00ff00;
-      background: transparent;
       color: #00ff00;
-      font-size: 18px;
-      text-decoration: none;
+      background: transparent;
       cursor: pointer;
-      margin-top: 20px;
+      text-decoration: none;
+      user-select: none;
+      transition: background 0.3s, color 0.3s;
+      border-radius: 6px;
+      font-family: 'Share Tech Mono', monospace;
       display: inline-block;
+      margin-bottom: 30px;
     }
     .btn:hover {
       background: #00ff00;
       color: black;
     }
     #qrcode {
-      margin-top: 20px;
-      pointer-events: none;
+      margin-top: 0;
+      pointer-events: auto;
+      border: 2px solid #00ff00;
+      padding: 10px;
+      border-radius: 8px;
+      background: #001100;
+      cursor: pointer;
+      user-select: none;
+      width: 220px;
+      height: 220px;
+      box-sizing: border-box;
+      margin-bottom: 30px;
     }
     .warning {
-      margin-top: 30px;
-      color: red;
-      font-size: 14px;
-      text-align: center;
-      max-width: 90%;
+      color: #ff4444;
+      font-size: 0.9rem;
+      max-width: 90vw;
+      user-select: none;
     }
   </style>
 </head>
-<body 
-  oncontextmenu="return false"
-  onselectstart="return false"
-  oncopy="return false"
-  oncut="return false"
-  onpaste="return false"
-  onkeydown="return false"
-  ondragstart="return false">
+<body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false" onpaste="return false" onkeydown="return false" ondragstart="return false">
 
   <canvas class="matrix"></canvas>
 
   <h1>ACCESS GRANTED<br>ROUTING: NODE_713</h1>
-  <a id="contactBtn" class="btn" href="https://t.me/join-proxy">СВЯЗАТЬСЯ</a>
-  <canvas id="qrcode"></canvas>
+
+  <a id="contactBtn" class="btn" href="https://t.me/join-proxy" tabindex="0" aria-label="Связаться">СВЯЗАТЬСЯ</a>
+
+  <canvas id="qrcode" aria-label="QR код для связи"></canvas>
 
   <div class="warning">
-    Устройство должно иметь установленный Telegram.<br>
-    Если кнопка не работает — отсканируй QR-код.
+    На вашем устройстве обязательно должен быть установлен Telegram.<br>
+    Если кнопка не срабатывает — отсканируйте QR-код.
   </div>
 
   <noscript>
     <div style="color: red; background: black; padding: 20px; text-align: center;">
-      JavaScript отключён. Пожалуйста, включите его для доступа.
+      Эта страница требует включённого JavaScript. Пожалуйста, включите его.
     </div>
   </noscript>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
-    // 🧱 Анти-дебаг
     setInterval(() => {
       const threshold = 160;
-      if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+      if(window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
         document.body.innerHTML = "";
       }
     }, 500);
 
-    // ✅ Зашифрованная tg://user ссылка
     const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
     const key = CryptoJS.MD5("MatrixSecretKey42");
     const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
@@ -97,22 +111,34 @@
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
 
-    // ⬅️ Кнопка: при клике - переход на расшифрованную ссылку
-    document.getElementById("contactBtn").addEventListener("click", function(e) {
+    document.getElementById('contactBtn').addEventListener('click', e => {
       e.preventDefault();
       window.location.href = decrypted;
     });
 
-    // 🧬 QR-код: ведёт якобы на proxy, но можно заменить на фрейм или редирект
-    QRCode.toCanvas(document.getElementById("qrcode"), "https://t.me/join-proxy", {
-      color: {
-        dark: "#00ff00",
-        light: "#000000"
-      },
+    const fakeUrl = "https://t.me/join-proxy";
+    const realUrl = decrypted;
+
+    const qrCanvas = document.getElementById('qrcode');
+    QRCode.toCanvas(qrCanvas, fakeUrl, {
+      color: { dark: "#00ff00", light: "#000000" },
       width: 200
+    }, function (error) {
+      if(error) console.error(error);
     });
 
-    // 🌌 Matrix background
+    qrCanvas.addEventListener('mouseenter', () => {
+      qrCanvas.style.display = 'none';
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = realUrl;
+      document.body.appendChild(iframe);
+      setTimeout(() => {
+        qrCanvas.style.display = 'block';
+        document.body.removeChild(iframe);
+      }, 2000);
+    });
+
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     function resize() {
@@ -121,17 +147,20 @@
     }
     resize();
     window.addEventListener('resize', resize);
-    const columns = Math.floor(canvas.width / 12);
+
+    const columns = Math.floor(canvas.width / 14);
     const drops = Array(columns).fill(1);
+
     function drawMatrix() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#0F0";
-      ctx.font = "12px monospace";
+      ctx.font = "14px monospace";
       for (let i = 0; i < drops.length; i++) {
-        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-        const x = i * 12;
-        const y = drops[i] * 12;
+        const charCode = 0x30A0 + Math.random() * 96;
+        const text = String.fromCharCode(charCode);
+        const x = i * 14;
+        const y = drops[i] * 14;
         ctx.fillText(text, x, y);
         if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
@@ -139,5 +168,6 @@
     }
     setInterval(drawMatrix, 50);
   </script>
+
 </body>
 </html>
