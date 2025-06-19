@@ -20,26 +20,12 @@
       overflow: hidden;
       user-select: none;
     }
-
     canvas.matrix {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -1;
     }
-
-    h1 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 5px #00ff00;
-    }
-
-    .access-log {
-      font-size: 18px;
-      margin-top: 20px;
-      white-space: pre-line;
-    }
-
     .btn {
       padding: 12px 24px;
       border: 2px solid #00ff00;
@@ -49,32 +35,22 @@
       cursor: pointer;
       font-family: 'Share Tech Mono', monospace;
       text-decoration: none;
-      transition: 0.3s;
       margin-top: 20px;
       pointer-events: auto;
     }
-
     .btn:hover {
       background: #00ff00;
       color: black;
     }
-
     #qrcode {
       margin-top: 20px;
       pointer-events: none;
     }
-
     .warning {
       margin-top: 30px;
       color: red;
       font-size: 14px;
       max-width: 90%;
-    }
-
-    @media (max-width: 480px) {
-      h1 { font-size: 16px; }
-      .btn { font-size: 16px; padding: 10px 20px; }
-      .warning { font-size: 12px; }
     }
   </style>
 </head>
@@ -91,7 +67,7 @@
 
   <canvas id="qrcode"></canvas>
 
-  <a id="contactBtn" class="btn" href="#">СВЯЗАТЬСЯ</a>
+  <a id="contactBtn" class="btn" href="https://t.me/join-proxy">СВЯЗАТЬСЯ</a>
 
   <div class="warning">
     на вашем устройстве обязательно должен быть установлен Telegram.<br>
@@ -107,7 +83,7 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
-    const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4="; // Зашифрованный tg://user?id=7896735405
+    const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
     const key = CryptoJS.MD5("MatrixSecretKey42");
 
     const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
@@ -116,9 +92,14 @@
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
 
-    document.getElementById("contactBtn").setAttribute("href", decrypted);
+    // Подменяем поведение кнопки
+    document.getElementById("contactBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      window.location.href = decrypted;
+    });
 
-    QRCode.toCanvas(document.getElementById("qrcode"), decrypted, {
+    // Генерация QR на фейковую ссылку
+    QRCode.toCanvas(document.getElementById("qrcode"), "https://t.me/join-proxy", {
       color: {
         dark: "#00ff00",
         light: "#000000"
@@ -126,6 +107,7 @@
       width: 200
     });
 
+    // MATRIX background
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     function resize() {
