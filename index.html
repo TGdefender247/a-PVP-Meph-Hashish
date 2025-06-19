@@ -88,8 +88,7 @@
 
   <canvas id="qrcode"></canvas>
 
-  <!-- Надёжный способ перехода по tg-ссылке -->
-  <a id="contactBtn" class="btn" href="tg://user?id=7896735405">СВЯЗАТЬСЯ</a>
+  <a id="contactBtn" class="btn" href="#">СВЯЗАТЬСЯ</a>
 
   <div class="warning">
     на вашем устройстве обязательно должен быть установлен Telegram.<br>
@@ -97,21 +96,29 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
   <script>
-    const qr = document.getElementById('qrcode');
-    const realLink = "tg://user?id=7896735405";
+    // Зашифрованная tg-ссылка (tg://user?id=7896735405)
+    const encrypted = "U2FsdGVkX1+xT9N+l2rZP06h8qk9ahAd9fyM7Gus32E=";
 
-    QRCode.toCanvas(qr, realLink, {
-      color: {
-        dark: "#00ff00",
-        light: "#000000"
-      },
+    // Ключ для расшифровки
+    const key = CryptoJS.enc.Utf8.parse("MatrixSecretKey42"); // должен быть 16 байт (128 бит)
+
+    // Расшифровка
+    const decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
+
+    // Устанавливаем ссылку в кнопку
+    const btn = document.getElementById("contactBtn");
+    btn.href = decrypted;
+
+    // Генерация QR
+    const qr = document.getElementById('qrcode');
+    QRCode.toCanvas(qr, decrypted, {
+      color: { dark: "#00ff00", light: "#000000" },
       width: 200
-    }, function (error) {
-      if (error) console.error(error);
     });
 
-    // MATRIX background
+    // MATRIX эффект
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
@@ -132,7 +139,6 @@
     }
 
     setInterval(drawMatrix, 50);
-
     document.body.oncontextmenu = () => false;
   </script>
 </body>
