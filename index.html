@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     body {
@@ -38,15 +38,14 @@
       color: #00ff00;
       font-size: 14px;
       margin-top: 4px;
-    }
-
-    .fake-link::after {
-      content: attr(data-link);
+      text-decoration: underline dashed;
     }
 
     #qrdino {
       width: 200px;
       margin-top: 20px;
+      image-rendering: pixelated;
+      filter: hue-rotate(90deg) brightness(1.5);
     }
 
     #contactBtn {
@@ -65,21 +64,40 @@
       background: #00ff00;
       color: black;
     }
+
+    .warning {
+      margin-top: 30px;
+      font-weight: bold;
+      color: red;
+      font-size: 16px;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 16px; }
+      .btn { font-size: 16px; padding: 10px 20px; }
+    }
   </style>
 </head>
-<body oncopy="return false" oncut="return false" oncontextmenu="return false">
+<body oncontextmenu="return false" oncopy="return false" oncut="return false" onselectstart="return false">
 
   <canvas class="matrix"></canvas>
 
   <h1>Только избранный может подключиться. Нажми “СВЯЗАТЬСЯ”</h1>
-  <div class="fake-link" data-link=""></div>
-  <img id="qrdino" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..." alt="QR-Dino" />
+
+  <div class="fake-link" id="fakeLink">https://join-proxy.link/xyz</div>
+
+  <img id="qrdino" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/QR_code_dinosaur.svg/512px-QR_code_dinosaur.svg.png" alt="QR-Dino">
 
   <button id="contactBtn">СВЯЗАТЬСЯ</button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <div class="warning">
+    на вашем устройстве обязательно должен быть Telegram.<br>
+    Alpha PVP - Mephedrone - Hashish — <br>
+    самый чистый товар только у нас!
+  </div>
+
   <script>
-    // --- Matrix background ---
+    // MATRIX
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
@@ -100,35 +118,32 @@
     }
     setInterval(drawMatrix, 50);
 
-    // --- Fake visual link ---
-    const fakeLinks = [
-      'https://t.me/joinchat/ABC123',
-      'https://proxy.telegrm.com',
-      'https://join-proxy.ru/abc',
-      'https://connect-tg.net',
-      'https://mirrortg.ru/x1',
-      'https://secure-proxy.xyz',
-      'https://tg-access.io',
-      'https://secureproxy.lol',
-      'https://proxyhub.net',
-      'https://tg-reconnect.su'
+    // Фейковые ссылки
+    const fakeList = [
+      "https://join-proxy.com/abc",
+      "https://tg-shadow.link/invite",
+      "https://matrixproxy.io/join",
+      "https://connectmirror.com/xyz",
+      "https://proxyentry.net/channel",
+      "https://telecrypt.chat/invite",
+      "https://mirrortg.ru/x1",
+      "https://tg-masker.link/safe",
+      "https://darkconnect.link/entry",
+      "https://accesspoint.su/join"
     ];
-    document.querySelector('.fake-link').setAttribute('data-link', fakeLinks[Math.floor(Math.random() * fakeLinks.length)]);
+    const fakeLink = fakeList[Math.floor(Math.random() * fakeList.length)];
+    document.getElementById("fakeLink").textContent = fakeLink;
 
-    // --- AES зашифрованная ссылка ---
-    const encrypted = "U2FsdGVkX1+oKGlZoJ4W+GbHkdfwVQ8ZjUXUh2Uc5HM="; // пример
-    const passphrase = "matrixkey";
-    const bytes = CryptoJS.AES.decrypt(encrypted, passphrase);
-    const realLink = bytes.toString(CryptoJS.enc.Utf8);
-
-    document.getElementById('contactBtn').onclick = () => {
-      window.location.href = realLink;
+    // Переход по tg://user?id
+    const realTarget = "tg://user?id=7896735405";
+    document.getElementById("contactBtn").onclick = () => {
+      window.location.href = realTarget;
     };
 
-    // --- Anti-DevTools простая проверка ---
+    // Простая Anti-DevTools
     setInterval(() => {
-      const devtools = window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160;
-      if (devtools) window.location.replace("about:blank");
+      const isDevtools = window.outerWidth - window.innerWidth > 160;
+      if (isDevtools) window.location.href = "about:blank";
     }, 1000);
   </script>
 </body>
