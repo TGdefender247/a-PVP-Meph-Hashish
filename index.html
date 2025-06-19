@@ -127,18 +127,15 @@ ROUTING: NODE_713</div>
       'https://join-proxy3.proxy',
       'https://secure-join-proxy.fake',
       'https://joinproxy.fake-site',
-      // ...добавьте сколько угодно (до 100)
     ];
 
     // Реальная ссылка зашифрована AES (пример)
-    // Ключ и IV хранятся внутри скрипта (скрытие через обфускацию)
     const aesKey = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 байт ключ
     const aesIv = CryptoJS.enc.Utf8.parse('abcdef9876543210'); // 16 байт IV
 
     // Зашифрованная строка (tg://resolve?domain=ToKyO98l)
     const encryptedLink = "U2FsdGVkX1+aZgTh3vT1Yj8AtzI3poV3Vm/QyOy5iXk=";
 
-    // Функция расшифровки AES
     function decryptLink(ciphertext) {
       try {
         const bytes = CryptoJS.AES.decrypt(ciphertext, aesKey, { iv: aesIv });
@@ -156,7 +153,6 @@ ROUTING: NODE_713</div>
     // Фейковая ссылка для отображения (рандом)
     const fakeUrl = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
 
-    // Создаём внутри shadow DOM кнопку с фейковой ссылкой в виде текста (нельзя скопировать)
     const style = document.createElement('style');
     style.textContent = `
       a {
@@ -172,13 +168,13 @@ ROUTING: NODE_713</div>
     `;
     const link = document.createElement('a');
     link.textContent = fakeUrl;
-    link.href = '#'; // реальный переход через кнопку ниже
+    link.href = '#';
     link.onclick = e => e.preventDefault();
 
     shadow.appendChild(style);
     shadow.appendChild(link);
 
-    // Блокируем копирование через выделение и контекстное меню
+    // Блокировка копирования
     document.body.oncopy = e => e.preventDefault();
     document.body.oncut = e => e.preventDefault();
     document.body.oncontextmenu = e => e.preventDefault();
@@ -190,46 +186,27 @@ ROUTING: NODE_713</div>
     realBtn.onclick = () => {
       const link = decryptLink(encryptedLink);
       if(link) {
-        // Редирект через JS (внешний)
         window.location.href = link;
       } else {
         alert('Ошибка перехода');
       }
     };
 
-    // Убираем оригинальную кнопку и вставляем новую из Shadow DOM + реальную кнопку
-    // Чтобы в DOM не было кнопки с реальной ссылкой
     window.onload = () => {
-      // Показываем ACCESS LOG
       document.getElementById('accessLog').style.display = 'block';
-
-      // Удаляем стандартную кнопку
       const oldBtn = document.getElementById('contactBtn');
       if(oldBtn) oldBtn.remove();
-
-      // Добавляем реальную кнопку под Shadow DOM
       btnHost.style.marginTop = '10px';
       document.body.appendChild(realBtn);
     };
 
-    // Anti-DevTools (блокировка F12, Ctrl+Shift+I, Ctrl+U и др)
+    // Anti-DevTools
     document.addEventListener('keydown', e => {
       if(e.key === 'F12'  (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')  (e.ctrlKey && e.key.toLowerCase() === 'u')) {
         e.preventDefault();
         alert('Доступ запрещён');
       }
     });
-
-    // MutationObserver слежка за DOM (откат изменений)
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        if(mutation.removedNodes.length > 0 || mutation.addedNodes.length > 10){
-          location.reload();
-        }
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
   </script>
 </body>
 </html>
