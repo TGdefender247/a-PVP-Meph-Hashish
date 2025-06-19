@@ -95,50 +95,65 @@
     Если кнопка не срабатывает, скопируй ссылку и вставь в Яндекс, или отсканируй QR-код и сможешь купить самый чистый товар.
   </div>
 
+  <!-- QR-код и AES -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
+
   <script>
-    // Зашифрованная tg-ссылка (tg://user?id=7896735405)
+    // Зашифрованная tg://user?id=7896735405
     const encrypted = "U2FsdGVkX1+xT9N+l2rZP06h8qk9ahAd9fyM7Gus32E=";
+    const key = "MatrixSecretKey42"; // тот же ключ, что при шифровании
 
-    // Ключ для расшифровки
-    const key = CryptoJS.enc.Utf8.parse("MatrixSecretKey42"); // должен быть 16 байт (128 бит)
+    function decryptLink(encryptedData, passphrase) {
+      return CryptoJS.AES.decrypt(encryptedData, passphrase).toString(CryptoJS.enc.Utf8);
+    }
 
-    // Расшифровка
-    const decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
+    const link = decryptLink(encrypted, key);
 
-    // Устанавливаем ссылку в кнопку
-    const btn = document.getElementById("contactBtn");
-    btn.href = decrypted;
-
-    // Генерация QR
-    const qr = document.getElementById('qrcode');
-    QRCode.toCanvas(qr, decrypted, {
-      color: { dark: "#00ff00", light: "#000000" },
+    // QR-код
+    QRCode.toCanvas(document.getElementById("qrcode"), link, {
+      color: {
+        dark: "#00ff00",
+        light: "#000000"
+      },
       width: 200
     });
 
-    // MATRIX эффект
+    // Кнопка
+    const btn = document.getElementById("contactBtn");
+    btn.href = link;
+
+    // Фон матрицы
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const letters = Array(256).join("01").split("");
-    const fontSize = 12;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const letters = Array(Math.floor(canvas.width / 12)).fill(0);
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#0F0";
-      letters.forEach((y_pos, index) => {
-        const text = String.fromCharCode(3e4 + Math.random() * 33);
-        const x_pos = index * fontSize;
-        ctx.fillText(text, x_pos, y_pos);
-        letters[index] = y_pos > canvas.height + Math.random() * 1e4 ? 0 : y_pos + fontSize;
+      ctx.font = "12px monospace";
+
+      letters.forEach((y, i) => {
+        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+        const x = i * 12;
+        ctx.fillText(text, x, y);
+        letters[i] = y > canvas.height + Math.random() * 10000 ? 0 : y + 12;
       });
     }
 
     setInterval(drawMatrix, 50);
+
+    // Отключение контекстного меню
     document.body.oncontextmenu = () => false;
   </script>
 </body>
