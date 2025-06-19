@@ -40,7 +40,13 @@
       display: none;
     }
 
-    #qrcode, #contactBtn {
+    #qrcode {
+      display: none;
+      margin-top: 20px;
+      background: black;
+    }
+
+    #contactBtn {
       display: none;
       margin-top: 20px;
     }
@@ -79,9 +85,10 @@
     ROUTING: NODE_713
   </div>
 
-  <canvas id="qrcode"></canvas>
+  <canvas id="qrcode" width="200" height="200"></canvas>
   <button id="contactBtn" class="btn">СВЯЗАТЬСЯ</button>
 
+  <!-- QRCode библиотека -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
   <script>
@@ -106,7 +113,7 @@
     }
     setInterval(drawMatrix, 50);
 
-    // Заменённая ссылка
+    // Ссылка на Telegram
     const realLink = "tg://user?id=7896735405";
 
     window.onload = () => {
@@ -116,14 +123,26 @@
 
       accessLog.style.display = 'block';
 
-      qrcode.toCanvas(qr, realLink, {
-        color: { dark: "#00ff00", light: "#000000" },
-        width: 200
-      }, err => {
-        if (err) console.error(err);
-        else qr.style.display = 'block';
-      });
+      // Проверка, что библиотека QRCode загружена
+      if (window.qrcode && typeof qrcode.toCanvas === 'function') {
+        qrcode.toCanvas(qr, realLink, {
+          color: {
+            dark: "#00ff00",
+            light: "#000000"
+          },
+          width: 200
+        }, function (error) {
+          if (error) {
+            console.error('Ошибка при генерации QR:', error);
+          } else {
+            qr.style.display = 'block';
+          }
+        });
+      } else {
+        console.error('Библиотека qrcode не загружена');
+      }
 
+      // Кнопка
       btn.style.display = 'inline-block';
       btn.onclick = () => {
         window.location.href = realLink;
