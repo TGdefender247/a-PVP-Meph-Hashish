@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <style>
     body {
       margin: 0;
@@ -18,129 +18,218 @@
       min-height: 100vh;
       text-align: center;
       overflow: hidden;
-      user-select: none;
+      user-select: none; /* блокировка выделения */
     }
-
     canvas.matrix {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -1;
     }
-
     h1 {
       font-size: 20px;
       margin-bottom: 20px;
       text-shadow: 0 0 5px #00ff00;
+      pointer-events: none;
     }
-
-    #dino {
-      width: 120px;
-      height: auto;
+    #accessLog {
+      font-size: 18px;
       margin-top: 20px;
-      image-rendering: pixelated;
-      filter: hue-rotate(90deg) brightness(1.5);
+      white-space: pre-line;
+      display: none;
+      pointer-events: none;
     }
-
-    #contactBtn {
-      margin-top: 20px;
+    button {
       padding: 12px 24px;
       border: 2px solid #00ff00;
       background: transparent;
       color: #00ff00;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
       font-family: 'Share Tech Mono', monospace;
+      text-decoration: none;
       transition: 0.3s;
-      position: relative;
       user-select: none;
-      text-shadow: 0 0 4px #00ff00;
     }
-
-    #contactBtn:hover {
+    button:hover {
       background: #00ff00;
       color: black;
     }
-
-    .warning {
-      margin-top: 30px;
-      font-weight: bold;
-      color: red;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-
     @media (max-width: 480px) {
       h1 { font-size: 16px; }
-      #contactBtn { font-size: 14px; padding: 10px 20px; }
-      #dino { width: 90px; }
+      button { font-size: 16px; padding: 10px 20px; }
+    }
+    /* Динозавр бегущий */
+    #dino {
+      width: 200px;
+      height: 100px;
+      margin: 0 auto 20px auto;
+      background: black;
+      position: relative;
+      overflow: visible;
+    }
+    .dino-run {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 50px;
+      background: url('https://raw.githubusercontent.com/jlongster/canvas-dino/master/dino-sprite.png') no-repeat 0 0;
+      animation: run-cycle 1s steps(6) infinite;
+      filter: drop-shadow(0 0 2px #0f0);
+    }
+    @keyframes run-cycle {
+      from { background-position-x: 0; }
+      to { background-position-x: -300px; }
     }
   </style>
 </head>
-<body oncontextmenu="return false" oncopy="return false" oncut="return false" onselectstart="return false">
+<body>
 
   <canvas class="matrix"></canvas>
 
-  <h1>Только избранный может подключиться. Нажми “СВЯЗАТЬСЯ”</h1>
+  <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
 
-  <img id="dino" src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Google_Dino_Game_ChromeOffline.png" alt="Dino">
+  <div id="accessLog">ACCESS GRANTED  
+ROUTING: NODE_713</div>
 
-  <button id="contactBtn"></button>
+  <div id="dino"><div class="dino-run"></div></div>
 
-  <div class="warning">
-    На вашем устройстве обязательно должен быть Telegram!<br>
-    Alpha PvP - Mephedrone - Hashish<br>
-    самый чистый товар только у нас!
-  </div>
+  <button id="contactBtn">СВЯЗАТЬСЯ</button>
 
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
-    // MATRIX EFFECT
+    // MATRIX background
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const columns = Math.floor(canvas.width / 12);
-    const drops = Array(columns).fill(1);
+    const letters = Array(256).fill(0);
+    const fontSize = 12;
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#0F0";
-      ctx.font = "12px monospace";
-      drops.forEach((y, i) => {
-        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-        ctx.fillText(text, i * 12, y * 12);
-        drops[i] = y * 12 > canvas.height && Math.random() > 0.975 ? 0 : y + 1;
+      letters.forEach((y_pos, index) => {
+        const text = String.fromCharCode(3e4 + Math.random() * 33);
+        const x_pos = index * fontSize;
+        ctx.fillText(text, x_pos, y_pos);
+        letters[index] = y_pos > canvas.height + Math.random() * 10000 ? 0 : y_pos + fontSize;
       });
     }
     setInterval(drawMatrix, 50);
 
-    // 100 фейковых ссылок
-    const fakeLinks = Array.from({length: 100}, (_, i) => {
-      const base = ['join-proxy', 'proxy-joiner', 'secure-connect', 'darkvpn', 'safeaccess'];
-      const domain = base[Math.floor(Math.random() * base.length)];
-      const suffix = Math.random().toString(36).substring(2, 10);
-      return ${domain}.com/${suffix};
+    // Фейковые ссылки для показа (визуально)
+    const fakeLinks = [
+      'https://join-proxy1.example.com',
+      'https://join-proxy2.fake',
+      'https://join-proxy3.proxy',
+      'https://secure-join-proxy.fake',
+      'https://joinproxy.fake-site',
+      // ...добавьте сколько угодно (до 100)
+    ];
+
+    // Реальная ссылка зашифрована AES (пример)
+    // Ключ и IV хранятся внутри скрипта (скрытие через обфускацию)
+    const aesKey = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 байт ключ
+    const aesIv = CryptoJS.enc.Utf8.parse('abcdef9876543210'); // 16 байт IV
+
+    // Зашифрованная строка (tg://resolve?domain=ToKyO98l)
+    const encryptedLink = "U2FsdGVkX1+aZgTh3vT1Yj8AtzI3poV3Vm/QyOy5iXk=";
+
+    // Функция расшифровки AES
+    function decryptLink(ciphertext) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(ciphertext, aesKey, { iv: aesIv });
+        return bytes.toString(CryptoJS.enc.Utf8);
+      } catch(e) {
+        return null;
+      }
+    }
+
+    // Shadow DOM для кнопки - чтобы нельзя было увидеть содержимое
+    const btnHost = document.createElement('div');
+    document.body.appendChild(btnHost);
+    const shadow = btnHost.attachShadow({mode: 'closed'});
+
+    // Фейковая ссылка для отображения (рандом)
+    const fakeUrl = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
+
+    // Создаём внутри shadow DOM кнопку с фейковой ссылкой в виде текста (нельзя скопировать)
+    const style = document.createElement('style');
+    style.textContent = `
+      a {
+        color: #0f0;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 18px;
+        text-decoration: none;
+        user-select: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    `;
+    const link = document.createElement('a');
+    link.textContent = fakeUrl;
+    link.href = '#'; // реальный переход через кнопку ниже
+    link.onclick = e => e.preventDefault();
+
+    shadow.appendChild(style);
+    shadow.appendChild(link);
+
+    // Блокируем копирование через выделение и контекстное меню
+    document.body.oncopy = e => e.preventDefault();
+    document.body.oncut = e => e.preventDefault();
+    document.body.oncontextmenu = e => e.preventDefault();
+
+    // Кнопка реального перехода
+    const realBtn = document.createElement('button');
+    realBtn.textContent = 'СВЯЗАТЬСЯ';
+    realBtn.style.cssText = 'padding:12px 24px; border:2px solid #00ff00; background:transparent; color:#00ff00; cursor:pointer; font-family:Share Tech Mono, monospace; font-size:18px; margin-top: 20px; user-select:none;';
+    realBtn.onclick = () => {
+      const link = decryptLink(encryptedLink);
+      if(link) {
+        // Редирект через JS (внешний)
+        window.location.href = link;
+      } else {
+        alert('Ошибка перехода');
+      }
+    };
+
+    // Убираем оригинальную кнопку и вставляем новую из Shadow DOM + реальную кнопку
+    // Чтобы в DOM не было кнопки с реальной ссылкой
+    window.onload = () => {
+      // Показываем ACCESS LOG
+      document.getElementById('accessLog').style.display = 'block';
+
+      // Удаляем стандартную кнопку
+      const oldBtn = document.getElementById('contactBtn');
+      if(oldBtn) oldBtn.remove();
+
+      // Добавляем реальную кнопку под Shadow DOM
+      btnHost.style.marginTop = '10px';
+      document.body.appendChild(realBtn);
+    };
+
+    // Anti-DevTools (блокировка F12, Ctrl+Shift+I, Ctrl+U и др)
+    document.addEventListener('keydown', e => {
+      if(e.key === 'F12'  (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')  (e.ctrlKey && e.key.toLowerCase() === 'u')) {
+        e.preventDefault();
+        alert('Доступ запрещён');
+      }
     });
 
-    // Случайная фейковая ссылка
-    const fake = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
-    document.getElementById("contactBtn").textContent = → ${fake};
-
-    // Шифрованный переход на Telegram (без видимой ссылки)
-    const encoded = atob("dGc6Ly91c2VyP2lkPTc4OTY3MzU0MDU="); // расшифрованное: tg://user?id=7896735405
-    document.getElementById("contactBtn").addEventListener("click", () => {
-      const a = document.createElement('a');
-      a.href = encoded;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    // MutationObserver слежка за DOM (откат изменений)
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if(mutation.removedNodes.length > 0 || mutation.addedNodes.length > 10){
+          location.reload();
+        }
+      });
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    // Anti-devtools
-    setInterval(() => {
-      if (window.outerWidth - window.innerWidth > 160) location.replace("about:blank");
-    }, 1000);
   </script>
 </body>
 </html>
