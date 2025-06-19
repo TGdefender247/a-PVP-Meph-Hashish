@@ -37,6 +37,12 @@
       font-size: 18px;
       margin-top: 20px;
       white-space: pre-line;
+      display: none;
+    }
+
+    #qrcode, #contactBtn {
+      display: none;
+      margin-top: 20px;
     }
 
     .btn {
@@ -49,7 +55,6 @@
       font-family: 'Share Tech Mono', monospace;
       text-decoration: none;
       transition: 0.3s;
-      margin-top: 20px;
     }
 
     .btn:hover {
@@ -57,21 +62,9 @@
       color: black;
     }
 
-    #qrcode {
-      margin-top: 20px;
-    }
-
-    .warning {
-      margin-top: 30px;
-      color: red;
-      font-size: 14px;
-      max-width: 90%;
-    }
-
     @media (max-width: 480px) {
       h1 { font-size: 16px; }
       .btn { font-size: 16px; padding: 10px 20px; }
-      .warning { font-size: 12px; }
     }
   </style>
 </head>
@@ -81,36 +74,17 @@
 
   <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
 
-  <div class="access-log">
-    ACCESS GRANTED<br>
+  <div id="accessLog" class="access-log">
+    ACCESS GRANTED  
     ROUTING: NODE_713
   </div>
 
   <canvas id="qrcode"></canvas>
-
-  <!-- Надёжный способ перехода по tg-ссылке -->
-  <a id="contactBtn" class="btn" href="tg://user?id=7896735405">СВЯЗАТЬСЯ</a>
-
-  <div class="warning">
-    на вашем устройстве обязательно должен быть установлен Telegram.<br>
-    Если кнопка не срабатывает, скопируй ссылку и вставь в Яндекс, или отсканируй QR-код и сможешь купить самый чистый товар.
-  </div>
+  <button id="contactBtn" class="btn">СВЯЗАТЬСЯ</button>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
   <script>
-    const qr = document.getElementById('qrcode');
-    const realLink = "tg://user?id=7896735405";
-
-    QRCode.toCanvas(qr, realLink, {
-      color: {
-        dark: "#00ff00",
-        light: "#000000"
-      },
-      width: 200
-    }, function (error) {
-      if (error) console.error(error);
-    });
-
     // MATRIX background
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
@@ -130,8 +104,31 @@
         letters[index] = y_pos > canvas.height + Math.random() * 1e4 ? 0 : y_pos + fontSize;
       });
     }
-
     setInterval(drawMatrix, 50);
+
+    // Настоящая зашифрованная ссылка
+    const realLink = "tg://resolve?domain=ToKyO98l";
+
+    window.onload = () => {
+      const accessLog = document.getElementById('accessLog');
+      const qr = document.getElementById('qrcode');
+      const btn = document.getElementById('contactBtn');
+
+      accessLog.style.display = 'block';
+
+      QRCode.toCanvas(qr, realLink, {
+        color: { dark: "#00ff00", light: "#000000" },
+        width: 200
+      }, err => {
+        if (err) console.error(err);
+        qr.style.display = 'block';
+      });
+
+      btn.style.display = 'inline-block';
+      btn.onclick = () => {
+        window.location.href = realLink;
+      };
+    };
 
     document.body.oncontextmenu = () => false;
   </script>
