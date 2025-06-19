@@ -18,6 +18,7 @@
       min-height: 100vh;
       text-align: center;
       overflow: hidden;
+      user-select: none;
     }
     canvas.matrix {
       position: fixed;
@@ -35,6 +36,7 @@
       font-family: 'Share Tech Mono', monospace;
       text-decoration: none;
       margin-top: 20px;
+      pointer-events: auto;
     }
     .btn:hover {
       background: #00ff00;
@@ -42,6 +44,7 @@
     }
     #qrcode {
       margin-top: 20px;
+      pointer-events: none;
     }
     .warning {
       margin-top: 30px;
@@ -50,7 +53,7 @@
     }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false" onselectstart="return false" oncopy="return false">
 
 <canvas class="matrix"></canvas>
 
@@ -58,14 +61,20 @@
 
 <div class="access-log">ACCESS GRANTED<br>ROUTING: NODE_713</div>
 
-<canvas id="qrcode"></canvas>
+<canvas id="qrcode" style="pointer-events:none;"></canvas>
 
-<a id="contactBtn" class="btn" href="#">СВЯЗАТЬСЯ</a>
+<a id="contactBtn" class="btn" href="#" oncontextmenu="return false">СВЯЗАТЬСЯ</a>
 
 <div class="warning">
   на вашем устройстве обязательно должен быть установлен Telegram.<br>
   Если кнопка не срабатывает — скопируй ссылку или отсканируй QR-код.
 </div>
+
+<noscript>
+  <div style="color: red; background: black; padding: 20px;">
+    Эта страница требует включённого JavaScript. Пожалуйста, включите его в настройках браузера.
+  </div>
+</noscript>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
@@ -73,17 +82,13 @@
   const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
   const key = CryptoJS.MD5("MatrixSecretKey42");
 
-  // Расшифровка
   const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
     iv: key,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7
   }).toString(CryptoJS.enc.Utf8);
 
-  // Установка ссылки
-  document.getElementById("contactBtn").href = decrypted;
-
-  // Генерация QR
+  // QR
   QRCode.toCanvas(document.getElementById("qrcode"), decrypted, {
     color: {
       dark: "#00ff00",
@@ -92,7 +97,11 @@
     width: 200
   });
 
-  // Matrix фон
+  // Кнопка
+  const btn = document.getElementById("contactBtn");
+  btn.href = decrypted;
+
+  // MATRIX фон
   const canvas = document.querySelector('.matrix');
   const ctx = canvas.getContext('2d');
   function resize() {
