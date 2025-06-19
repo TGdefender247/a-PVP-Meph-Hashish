@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     body {
@@ -20,13 +20,37 @@
       overflow: hidden;
       user-select: none;
     }
+
     canvas.matrix {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -1;
     }
-    .btn {
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 5px #00ff00;
+    }
+
+    .fake-link {
+      color: #00ff00;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .fake-link::after {
+      content: attr(data-link);
+    }
+
+    #qrdino {
+      width: 200px;
+      margin-top: 20px;
+    }
+
+    #contactBtn {
+      margin-top: 20px;
       padding: 12px 24px;
       border: 2px solid #00ff00;
       background: transparent;
@@ -34,140 +58,78 @@
       font-size: 18px;
       cursor: pointer;
       font-family: 'Share Tech Mono', monospace;
-      text-decoration: none;
       transition: 0.3s;
-      margin-top: 20px;
-      position: relative;
     }
-    .btn::after {
-      content: attr(data-link);
-      position: absolute;
-      bottom: -22px;
-      left: 0;
-      right: 0;
-      font-size: 12px;
-      color: #00ff00;
-      opacity: 0.3;
-      pointer-events: none;
-    }
-    .btn:hover {
+
+    #contactBtn:hover {
       background: #00ff00;
       color: black;
     }
-    .warning {
-      margin-top: 30px;
-      color: red;
-      font-size: 14px;
-      max-width: 90%;
-    }
-    #qrcode {
-      margin-top: 20px;
-    }
   </style>
 </head>
-<body oncontextmenu="return false" onselectstart="return false">
+<body oncopy="return false" oncut="return false" oncontextmenu="return false">
 
   <canvas class="matrix"></canvas>
 
-  <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
+  <h1>Только избранный может подключиться. Нажми “СВЯЗАТЬСЯ”</h1>
+  <div class="fake-link" data-link=""></div>
+  <img id="qrdino" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..." alt="QR-Dino" />
 
-  <div class="access-log">ACCESS GRANTED<br>ROUTING: NODE_713</div>
+  <button id="contactBtn">СВЯЗАТЬСЯ</button>
 
-  <canvas id="qrcode"></canvas>
-
-  <a id="contactBtn" class="btn">СВЯЗАТЬСЯ</a>
-
-  <div class="warning">
-    на вашем устройстве обязательно должен быть установлен Telegram.<br>
-    Если кнопка не срабатывает, скопируй ссылку и вставь в Яндекс, или отсканируй QR-код и сможешь купить самый чистый товар.
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script>
-    const encrypted = "/YYWygY3ok4oHvqRc+I9M4hSdz0oexZUNcwOncUqDX5ILP5T38lQrC22So14YUgU";
-    const keyHex = "1f9d40fc308e15cf7c6db275442bd264";
-    const ivHex = "fd8616ca0637a24e281efa9173e23d33";
-
-    const fakeLinks = [
-      "https://t.me/joinchat/FAKE_INVITE_LINK_1",
-      "https://proxy.join/ru/secret-entry",
-      "https://t.me/proxy?server=proxy.secret&port=443&secret=fake"
-    ];
-
-    function hexToBytes(hex) {
-      return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    }
-
-    function base64ToBytes(base64) {
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return bytes;
-    }
-
-    async function decryptLink() {
-      const fullData = base64ToBytes(encrypted);
-      const iv = fullData.slice(0, 16);
-      const data = fullData.slice(16);
-      const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), "AES-CBC", false, ["decrypt"]);
-      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: iv }, key, data);
-      return new TextDecoder().decode(decrypted).replace(/\0+$/, "");
-    }
-
-    decryptLink().then(url => {
-      const btn = document.getElementById("contactBtn");
-      const fake = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
-      btn.setAttribute("href", url);
-      btn.setAttribute("data-link", fake);
-
-      // QR как декоративный — без переходов
-      QRCode.toCanvas(document.getElementById('qrcode'), "DINOSAUR:MODE=SAFE", {
-        width: 180,
-        color: { dark: "#00ff00", light: "#000000" }
-      });
-    });
-
-    // Matrix
+    // --- Matrix background ---
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const letters = Array(256).join("01").split("");
-    const fontSize = 12;
+    const columns = Math.floor(canvas.width / 12);
+    const drops = Array(columns).fill(1);
+
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#0F0";
-      letters.forEach((y, i) => {
-        const text = String.fromCharCode(3e4 + Math.random() * 33);
-        const x = i * fontSize;
-        ctx.fillText(text, x, y);
-        letters[i] = y > canvas.height + Math.random() * 1e4 ? 0 : y + fontSize;
+      ctx.font = "12px monospace";
+      drops.forEach((y, i) => {
+        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+        ctx.fillText(text, i * 12, y * 12);
+        drops[i] = y * 12 > canvas.height && Math.random() > 0.975 ? 0 : y + 1;
       });
     }
     setInterval(drawMatrix, 50);
 
-    // Anti-devtools
-    document.addEventListener("keydown", e => {
-      if (["F12", "I", "J", "U"].includes(e.key) && (e.ctrlKey  e.metaKey  e.shiftKey)) {
-        e.preventDefault();
-        window.location.href = "about:blank";
-      }
-    });
+    // --- Fake visual link ---
+    const fakeLinks = [
+      'https://t.me/joinchat/ABC123',
+      'https://proxy.telegrm.com',
+      'https://join-proxy.ru/abc',
+      'https://connect-tg.net',
+      'https://mirrortg.ru/x1',
+      'https://secure-proxy.xyz',
+      'https://tg-access.io',
+      'https://secureproxy.lol',
+      'https://proxyhub.net',
+      'https://tg-reconnect.su'
+    ];
+    document.querySelector('.fake-link').setAttribute('data-link', fakeLinks[Math.floor(Math.random() * fakeLinks.length)]);
 
+    // --- AES зашифрованная ссылка ---
+    const encrypted = "U2FsdGVkX1+oKGlZoJ4W+GbHkdfwVQ8ZjUXUh2Uc5HM="; // пример
+    const passphrase = "matrixkey";
+    const bytes = CryptoJS.AES.decrypt(encrypted, passphrase);
+    const realLink = bytes.toString(CryptoJS.enc.Utf8);
+
+    document.getElementById('contactBtn').onclick = () => {
+      window.location.href = realLink;
+    };
+
+    // --- Anti-DevTools простая проверка ---
     setInterval(() => {
-      const devCheck = /./;
-      devCheck.toString = () => {
-        window.location.href = "about:blank";
-      };
-      console.log("%c", devCheck);
+      const devtools = window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160;
+      if (devtools) window.location.replace("about:blank");
     }, 1000);
-
-    // Блок копирования
-    document.addEventListener("copy", e => {
-      e.preventDefault();
-      e.clipboardData.setData("text/plain", "");
-    });
   </script>
 </body>
 </html>
