@@ -30,19 +30,13 @@
 
     h1 {
       font-size: 20px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       text-shadow: 0 0 5px #00ff00;
     }
 
-    .fake-link {
-      color: #00ff00;
-      font-size: 14px;
-      margin-top: 4px;
-      text-decoration: underline dashed;
-    }
-
-    #qrdino {
-      width: 200px;
+    #dino {
+      width: 120px;
+      height: auto;
       margin-top: 20px;
       image-rendering: pixelated;
       filter: hue-rotate(90deg) brightness(1.5);
@@ -54,10 +48,13 @@
       border: 2px solid #00ff00;
       background: transparent;
       color: #00ff00;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       font-family: 'Share Tech Mono', monospace;
       transition: 0.3s;
+      position: relative;
+      user-select: none;
+      text-shadow: 0 0 4px #00ff00;
     }
 
     #contactBtn:hover {
@@ -70,11 +67,13 @@
       font-weight: bold;
       color: red;
       font-size: 16px;
+      line-height: 1.5;
     }
 
     @media (max-width: 480px) {
       h1 { font-size: 16px; }
-      .btn { font-size: 16px; padding: 10px 20px; }
+      #contactBtn { font-size: 14px; padding: 10px 20px; }
+      #dino { width: 90px; }
     }
   </style>
 </head>
@@ -84,20 +83,18 @@
 
   <h1>Только избранный может подключиться. Нажми “СВЯЗАТЬСЯ”</h1>
 
-  <div class="fake-link" id="fakeLink">https://join-proxy.link/xyz</div>
+  <img id="dino" src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Google_Dino_Game_ChromeOffline.png" alt="Dino">
 
-  <img id="qrdino" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/QR_code_dinosaur.svg/512px-QR_code_dinosaur.svg.png" alt="QR-Dino">
-
-  <button id="contactBtn">СВЯЗАТЬСЯ</button>
+  <button id="contactBtn"></button>
 
   <div class="warning">
-    на вашем устройстве обязательно должен быть Telegram.<br>
-    Alpha PVP - Mephedrone - Hashish — <br>
+    На вашем устройстве обязательно должен быть Telegram!<br>
+    Alpha PvP - Mephedrone - Hashish<br>
     самый чистый товар только у нас!
   </div>
 
   <script>
-    // MATRIX
+    // MATRIX EFFECT
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
@@ -118,32 +115,31 @@
     }
     setInterval(drawMatrix, 50);
 
-    // Фейковые ссылки
-    const fakeList = [
-      "https://join-proxy.com/abc",
-      "https://tg-shadow.link/invite",
-      "https://matrixproxy.io/join",
-      "https://connectmirror.com/xyz",
-      "https://proxyentry.net/channel",
-      "https://telecrypt.chat/invite",
-      "https://mirrortg.ru/x1",
-      "https://tg-masker.link/safe",
-      "https://darkconnect.link/entry",
-      "https://accesspoint.su/join"
-    ];
-    const fakeLink = fakeList[Math.floor(Math.random() * fakeList.length)];
-    document.getElementById("fakeLink").textContent = fakeLink;
+    // 100 фейковых ссылок
+    const fakeLinks = Array.from({length: 100}, (_, i) => {
+      const base = ['join-proxy', 'proxy-joiner', 'secure-connect', 'darkvpn', 'safeaccess'];
+      const domain = base[Math.floor(Math.random() * base.length)];
+      const suffix = Math.random().toString(36).substring(2, 10);
+      return ${domain}.com/${suffix};
+    });
 
-    // Переход по tg://user?id
-    const realTarget = "tg://user?id=7896735405";
-    document.getElementById("contactBtn").onclick = () => {
-      window.location.href = realTarget;
-    };
+    // Случайная фейковая ссылка
+    const fake = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
+    document.getElementById("contactBtn").textContent = → ${fake};
 
-    // Простая Anti-DevTools
+    // Шифрованный переход на Telegram (без видимой ссылки)
+    const encoded = atob("dGc6Ly91c2VyP2lkPTc4OTY3MzU0MDU="); // расшифрованное: tg://user?id=7896735405
+    document.getElementById("contactBtn").addEventListener("click", () => {
+      const a = document.createElement('a');
+      a.href = encoded;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+
+    // Anti-devtools
     setInterval(() => {
-      const isDevtools = window.outerWidth - window.innerWidth > 160;
-      if (isDevtools) window.location.href = "about:blank";
+      if (window.outerWidth - window.innerWidth > 160) location.replace("about:blank");
     }, 1000);
   </script>
 </body>
