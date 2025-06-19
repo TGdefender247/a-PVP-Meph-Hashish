@@ -21,10 +21,7 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
       z-index: -1;
-      display: block;
     }
 
     h1 {
@@ -72,6 +69,7 @@
       font-family: 'Share Tech Mono', monospace;
       transition: 0.3s;
     }
+
     button:hover {
       background: #00ff00;
       color: black;
@@ -80,46 +78,55 @@
 </head>
 <body>
 
-  <canvas class="matrix"></canvas>
+<canvas class="matrix"></canvas>
 
-  <h1>Только избранный может подключиться.<br>Нажми “<b>Связаться</b>”</h1>
+<h1>Только избранный может подключиться.<br>Нажми “<b>Связаться</b>”</h1>
 
-  <div id="accessLog">
-    ACCESS GRANTED  
-    ROUTING: NODE_713
-  </div>
+<div id="accessLog">
+  ACCESS GRANTED  
+  ROUTING: NODE_713
+</div>
 
-  <div id="shadow-host"></div>
+<div id="shadow-host"></div>
 
-  <canvas id="dino-canvas" width="160" height="80"></canvas>
+<canvas id="dino-canvas" width="160" height="80"></canvas>
 
-  <div id="telegram-warning">на вашем устройстве обязательно должен быть установлен Telegram.</div>
+<div id="telegram-warning">на вашем устройстве обязательно должен быть установлен Telegram.</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
 (function(){
-  // MATRIX-анимация (плавная, с падающими символами)
+  // 🟢 MATRIX: масштаб canvas
   const canvas = document.querySelector(".matrix");
   const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
   const fontSize = 14;
-  const columns = Math.floor(canvas.width / fontSize);
-  const drops = Array(columns).fill(1);
+  let columns;
+  let drops;
+
+  function initMatrix() {
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
+  }
+  initMatrix();
 
   function drawMatrix() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = "#0F0";
     ctx.font = fontSize + "px 'Share Tech Mono', monospace";
 
     for (let i = 0; i < drops.length; i++) {
       const text = String.fromCharCode(0x30A0 + Math.random() * 96);
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
@@ -128,25 +135,22 @@
   }
   setInterval(drawMatrix, 50);
 
-  // Шифрование AES ключ и зашифрованная ссылка
+  // 🔐 AES ENCRYPTED TELEGRAM LINK
   const key = CryptoJS.enc.Utf8.parse("MySecretKey12345");
   const enc = "/v0r1VKldkKAVs83qkojD+9ythd3GNRaCfiJSfAxwnThXerQ4eK8YUCw48nDaTi3";
 
-  // Фейковые ссылки для title (рандом)
+  // 🔀 Фейковые ссылки
   const fakeLinks = [];
-  for(let i=1; i<=1000; i++) {
-    fakeLinks.push("https://join-proxy" + i + ".fake");
-  }
+  for(let i=1; i<=1000; i++) fakeLinks.push("https://join-proxy" + i + ".fake");
   const fake = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
 
-  // Shadow DOM с кнопкой
+  // 👁 Кнопка в Shadow DOM
   const host = document.getElementById("shadow-host");
   const shadow = host.attachShadow({mode:"closed"});
   const btn = document.createElement("button");
 
   btn.innerHTML = "<b>Связаться</b>";
   btn.title = fake;
-  btn.style.cssText = "padding:12px 24px; border:2px solid #00ff00; background:transparent; color:#00ff00; font-size:18px; cursor:pointer; font-family:'Share Tech Mono', monospace; transition:0.3s;";
 
   btn.onmouseenter = () => { btn.style.background = "#00ff00"; btn.style.color = "black"; };
   btn.onmouseleave = () => { btn.style.background = "transparent"; btn.style.color = "#00ff00"; };
@@ -155,16 +159,18 @@
     const raw = CryptoJS.enc.Base64.parse(enc);
     const iv = CryptoJS.lib.WordArray.create(raw.words.slice(0,4));
     const ct = CryptoJS.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
-    const decrypted = CryptoJS.AES.decrypt({ciphertext:ct}, key, {iv:iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
+    const decrypted = CryptoJS.AES.decrypt({ciphertext:ct}, key, {
+      iv:iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7
+    });
     const link = decrypted.toString(CryptoJS.enc.Utf8);
     window.location.href = link;
   };
 
   shadow.appendChild(btn);
 
-  // Блокировки
+  // 🛡️ Блокировки
   document.addEventListener("keydown", e => {
-    if(e.key==="F12"  (e.ctrlKey && e.shiftKey && e.key.toLowerCase()==="i")  (e.ctrlKey && e.key.toLowerCase()==="u")){
+    if (e.key === "F12"  (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i")  (e.ctrlKey && e.key.toLowerCase() === "u")) {
       e.preventDefault();
       alert("Доступ запрещён");
     }
@@ -173,46 +179,42 @@
   document.body.oncopy = e => e.preventDefault();
   document.body.oncut = e => e.preventDefault();
 
-  // Анимация динозавра на canvas (простейшая бегущая фигура)
+  // 🦖 Динозавр-анимация
   const dinoCanvas = document.getElementById("dino-canvas");
   const dCtx = dinoCanvas.getContext("2d");
-
   let frame = 0;
   function drawDino() {
     dCtx.clearRect(0, 0, dinoCanvas.width, dinoCanvas.height);
-
-    // Тело
     dCtx.fillStyle = "#00ff00";
+
+    // тело
     dCtx.beginPath();
     dCtx.ellipse(80, 40, 40, 30, 0, 0, Math.PI*2);
     dCtx.fill();
 
-    // Голова
+    // голова
     dCtx.beginPath();
     dCtx.ellipse(120, 35, 20, 25, 0, 0, Math.PI*2);
     dCtx.fill();
 
-    // Глаз
+    // глаз
     dCtx.fillStyle = "black";
     dCtx.beginPath();
     dCtx.ellipse(130, 30, 5, 7, 0, 0, Math.PI*2);
     dCtx.fill();
 
-    // Лапы (бегущие)
+    // лапы
     dCtx.fillStyle = "#00ff00";
     const legOffset = frame % 20 < 10 ? 5 : -5;
-
-    // Левая лапа
     dCtx.beginPath();
     dCtx.ellipse(60, 70 + legOffset, 10, 15, 0, 0, Math.PI*2);
     dCtx.fill();
 
-    // Правая лапа
     dCtx.beginPath();
     dCtx.ellipse(100, 70 - legOffset, 10, 15, 0, 0, Math.PI*2);
     dCtx.fill();
 
-    // Хвост (движется)
+    // хвост
     const tailOffset = frame % 40 < 20 ? 10 : -10;
     dCtx.beginPath();
     dCtx.moveTo(40, 40);
@@ -224,7 +226,6 @@
     frame++;
   }
   setInterval(drawDino, 150);
-
 })();
 </script>
 
