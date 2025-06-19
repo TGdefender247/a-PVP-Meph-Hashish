@@ -3,210 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <style>
-    body {
+    html, body {
       margin: 0;
       background: black;
       color: #00ff00;
       font-family: 'Share Tech Mono', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
+      height: 100%;
       overflow: hidden;
-      user-select: none; /* блокировка выделения */
+      user-select: none;
     }
+
     canvas.matrix {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -1;
+      width: 100vw;
+      height: 100vh;
     }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 5px #00ff00;
-      pointer-events: none;
-    }
-    #accessLog {
-      font-size: 18px;
+
+    #shadow-host {
       margin-top: 20px;
-      white-space: pre-line;
-      display: none;
-      pointer-events: none;
+      text-align: center;
     }
-    button {
-      padding: 12px 24px;
-      border: 2px solid #00ff00;
+
+    #telegram-warning {
+      margin-top: 20px;
+      font-weight: 700;
+      color: #ff0000;
+      font-size: 16px;
+      text-align: center;
+      user-select: text;
+    }
+
+    #dino-canvas {
+      display: block;
+      margin: 20px auto 0;
       background: transparent;
-      color: #00ff00;
-      font-size: 18px;
-      cursor: pointer;
-      font-family: 'Share Tech Mono', monospace;
-      text-decoration: none;
-      transition: 0.3s;
-      user-select: none;
-    }
-    button:hover {
-      background: #00ff00;
-      color: black;
-    }
-    @media (max-width: 480px) {
-      h1 { font-size: 16px; }
-      button { font-size: 16px; padding: 10px 20px; }
-    }
-    /* Динозавр бегущий */
-    #dino {
-      width: 200px;
-      height: 100px;
-      margin: 0 auto 20px auto;
-      background: black;
-      position: relative;
-      overflow: visible;
-    }
-    .dino-run {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 50px;
-      height: 50px;
-      background: url('https://raw.githubusercontent.com/jlongster/canvas-dino/master/dino-sprite.png') no-repeat 0 0;
-      animation: run-cycle 1s steps(6) infinite;
-      filter: drop-shadow(0 0 2px #0f0);
-    }
-    @keyframes run-cycle {
-      from { background-position-x: 0; }
-      to { background-position-x: -300px; }
+      width: 160px;
+      height: 80px;
     }
   </style>
 </head>
 <body>
 
-  <canvas class="matrix"></canvas>
+<canvas class="matrix"></canvas>
 
-  <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
+<div id="shadow-host"></div>
 
-  <div id="accessLog">ACCESS GRANTED  
-ROUTING: NODE_713</div>
+<canvas id="dino-canvas" width="160" height="80"></canvas>
 
-  <div id="dino"><div class="dino-run"></div></div>
+<div id="telegram-warning">на вашем устройстве обязательно должен быть установлен Telegram.</div>
 
-  <button id="contactBtn">СВЯЗАТЬСЯ</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-  <script>
-    // MATRIX background
-    const canvas = document.querySelector('.matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const letters = Array(256).fill(0);
-    const fontSize = 12;
-
-    function drawMatrix() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#0F0";
-      letters.forEach((y_pos, index) => {
-        const text = String.fromCharCode(3e4 + Math.random() * 33);
-        const x_pos = index * fontSize;
-        ctx.fillText(text, x_pos, y_pos);
-        letters[index] = y_pos > canvas.height + Math.random() * 10000 ? 0 : y_pos + fontSize;
-      });
-    }
-    setInterval(drawMatrix, 50);
-
-    // Фейковые ссылки для показа (визуально)
-    const fakeLinks = [
-      'https://join-proxy1.example.com',
-      'https://join-proxy2.fake',
-      'https://join-proxy3.proxy',
-      'https://secure-join-proxy.fake',
-      'https://joinproxy.fake-site',
-    ];
-
-    // Реальная ссылка зашифрована AES (пример)
-    const aesKey = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 байт ключ
-    const aesIv = CryptoJS.enc.Utf8.parse('abcdef9876543210'); // 16 байт IV
-
-    // Зашифрованная строка (tg://resolve?domain=ToKyO98l)
-    const encryptedLink = "U2FsdGVkX1+aZgTh3vT1Yj8AtzI3poV3Vm/QyOy5iXk=";
-
-    function decryptLink(ciphertext) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, aesKey, { iv: aesIv });
-        return bytes.toString(CryptoJS.enc.Utf8);
-      } catch(e) {
-        return null;
-      }
-    }
-
-    // Shadow DOM для кнопки - чтобы нельзя было увидеть содержимое
-    const btnHost = document.createElement('div');
-    document.body.appendChild(btnHost);
-    const shadow = btnHost.attachShadow({mode: 'closed'});
-
-    // Фейковая ссылка для отображения (рандом)
-    const fakeUrl = fakeLinks[Math.floor(Math.random() * fakeLinks.length)];
-
-    const style = document.createElement('style');
-    style.textContent = `
-      a {
-        color: #0f0;
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 18px;
-        text-decoration: none;
-        user-select: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    `;
-    const link = document.createElement('a');
-    link.textContent = fakeUrl;
-    link.href = '#';
-    link.onclick = e => e.preventDefault();
-
-    shadow.appendChild(style);
-    shadow.appendChild(link);
-
-    // Блокировка копирования
-    document.body.oncopy = e => e.preventDefault();
-    document.body.oncut = e => e.preventDefault();
-    document.body.oncontextmenu = e => e.preventDefault();
-
-    // Кнопка реального перехода
-    const realBtn = document.createElement('button');
-    realBtn.textContent = 'СВЯЗАТЬСЯ';
-    realBtn.style.cssText = 'padding:12px 24px; border:2px solid #00ff00; background:transparent; color:#00ff00; cursor:pointer; font-family:Share Tech Mono, monospace; font-size:18px; margin-top: 20px; user-select:none;';
-    realBtn.onclick = () => {
-      const link = decryptLink(encryptedLink);
-      if(link) {
-        window.location.href = link;
-      } else {
-        alert('Ошибка перехода');
-      }
-    };
-
-    window.onload = () => {
-      document.getElementById('accessLog').style.display = 'block';
-      const oldBtn = document.getElementById('contactBtn');
-      if(oldBtn) oldBtn.remove();
-      btnHost.style.marginTop = '10px';
-      document.body.appendChild(realBtn);
-    };
-
-    // Anti-DevTools
-    document.addEventListener('keydown', e => {
-      if(e.key === 'F12'  (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')  (e.ctrlKey && e.key.toLowerCase() === 'u')) {
-        e.preventDefault();
-        alert('Доступ запрещён');
-      }
+<script>
+(function(){
+  // MATRIX-анимация
+  const canvas = document.querySelector(".matrix");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const letters = Array(256).join("0").split("");
+  const fontSize = 12;
+  function drawMatrix(){
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#0F0";
+    letters.forEach((y, i) => {
+      const text = String.fromCharCode(3e4 + Math.random() * 33);
+      const x = i * fontSize;
+      ctx.fillText(text, x, y);
+      letters[i] = y > canvas.height + Math.random() * 1e4 ? 0 : y + fontSize;
     });
-  </script>
+  }
+  setInterval(drawMatrix, 50);
+
+  // Ключ и зашифрованная ссылка
+  const key = CryptoJS.enc.Utf8.parse("MySecretKey12345");
+  const enc = "/v0r1VKldkKAVs83qkojD+9ythd3GNRaCfiJSfAxwnThXerQ4eK8YUCw48nDaTi3";
+
+  const fakeLinks = [];
+  for(let i=1;i<=1000;i++){fakeLinks.push("https://join-proxy"+i+".fake");}
+  const fake = fakeLinks[Math.floor(Math.random()*fakeLinks.length)];
+
+  const host = document.getElementById("shadow-host");
+  const shadow = host.attachShadow({mode:"closed"});
+  const btn = document.createElement("button");
+
+  btn.innerHTML = "<b>Связаться</b>";
+  btn.title = fake;
+  btn.setAttribute("style", "padding:12px 24px;border:2px solid #00ff00;background:transparent;color:#00ff00;font-size:18px;cursor:pointer;font-family:'Share Tech Mono', monospace;transition:0.3s;");
+
+  btn.onmouseenter = () => { btn.style.background = "#00ff00"; btn.style.color = "black"; };
+  btn.onmouseleave = () => { btn.style.background = "transparent"; btn.style.color = "#00ff00"; };
+
+  btn.onclick = () => {
+    const raw = CryptoJS.enc.Base64.parse(enc);
+    const iv = CryptoJS.lib.WordArray.create(raw.words.slice(0,4));
+    const ct = CryptoJS.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
+    const decrypted = CryptoJS.AES.decrypt({ciphertext:ct}, key, {iv:iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
+    const link = decrypted.toString(CryptoJS.enc.Utf8);
+    window.location.href = link;
+  };
+
+  shadow.appendChild(btn);
+
+  // Блокировки
+  document.addEventListener("keydown", e => {
+    if(e.key==="F12"  (e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==="i")  (e.ctrlKey&&e.key.toLowerCase()==="u")){
+      e.preventDefault(); alert("Доступ запрещён");
+    }
+  });
+  document.body.oncontextmenu = e => e.preventDefault();
+  document.body.oncopy = e => e.preventDefault();
+  document.body.oncut = e => e.preventDefault();
+
+  // Анимация динозавра на canvas
+  const dinoCanvas = document.getElementById("dino-canvas");
+  const dCtx = dinoCanvas.getContext("2d");
+
+  let frame = 0;
+  function drawDino() {dCtx.clearRect(0, 0, dinoCanvas.width, dinoCanvas.height);
+
+    // Тело
+    dCtx.fillStyle = "#00ff00";
+    dCtx.beginPath();
+    dCtx.ellipse(80, 40, 40, 30, 0, 0, Math.PI*2);
+    dCtx.fill();
+
+    // Голова
+    dCtx.beginPath();
+    dCtx.ellipse(120, 35, 20, 25, 0, 0, Math.PI*2);
+    dCtx.fill();
+
+    // Глаз
+    dCtx.fillStyle = "black";
+    dCtx.beginPath();
+    dCtx.ellipse(130, 30, 5, 7, 0, 0, Math.PI*2);
+    dCtx.fill();
+
+    // Лапы (бегущие)
+    dCtx.fillStyle = "#00ff00";
+    const legOffset = frame % 20 < 10 ? 5 : -5;
+
+    // Левая лапа
+    dCtx.beginPath();
+    dCtx.ellipse(60, 70 + legOffset, 10, 15, 0, 0, Math.PI*2);
+    dCtx.fill();
+
+    // Правая лапа
+    dCtx.beginPath();
+    dCtx.ellipse(100, 70 - legOffset, 10, 15, 0, 0, Math.PI*2);
+    dCtx.fill();
+
+    // Хвост (движется)
+    const tailOffset = frame % 40 < 20 ? 10 : -10;
+    dCtx.beginPath();
+    dCtx.moveTo(40, 40);
+    dCtx.lineTo(10, 30 + tailOffset);
+    dCtx.lineTo(20, 50 + tailOffset);
+    dCtx.closePath();
+    dCtx.fill();
+
+    frame++;
+  }
+
+  setInterval(drawDino, 150);
+
+})();
+</script>
 </body>
 </html>
